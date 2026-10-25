@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-10-25
+
+### Added
+- `aapanel/list_docker_images` lists local images by size along with RAM and Docker disk usage
+- `aapanel/transfer_docker_images` streams images over SSH to Docker on another aaPanel host
+- Optional saved destinations in `docker_targets`
+- Dry run, and optional stop, container remove, and local image remove after the destination has the image
+- Tests for image-reference validation and transfer cleanup
+
 ## [1.0.0] - 2025-11-25
 
 ### Added

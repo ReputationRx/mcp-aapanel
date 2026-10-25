@@ -145,6 +145,82 @@ Restart a Docker container.
 }
 ```
 
+### list_docker_images
+
+List local images sorted by size, plus current RAM, Docker disk usage, and running container stats.
+
+**Request:**
+```json
+{
+  "method": "aapanel/list_docker_images"
+}
+```
+
+**Response:**
+```json
+{
+  "images": [
+    {"id": "sha256:...", "tags": ["nginx:1.27"], "size_bytes": 180000000, "size": "171.7 MB"}
+  ],
+  "count": 1,
+  "running_containers": [],
+  "memory": "Mem: ...",
+  "disk": "TYPE ..."
+}
+```
+
+### transfer_docker_images
+
+Stream one or more local images to Docker on another aaPanel host. The destination panel reads its local Docker engine, so a loaded image shows up under Docker → Images.
+
+The transfer is `docker save` piped over SSH into `docker load`. Nothing is written to a tar on the source, which matters when disk is already tight. Compression uses `gzip -1` unless `compress` is false.
+
+Only image layers are copied. Container configuration, volumes, bind mounts, networks, and environment variables stay on the source. Recreate the container on the destination after the image is there.
+
+SSH must accept key authentication. The command runs with `BatchMode=yes`, so a password prompt fails instead of hanging. The first connection stores the host key (`StrictHostKeyChecking=accept-new`).
+
+`stop_containers`, `remove_containers`, and `remove_local` default to false. Local cleanup runs only after the destination reports the image id. A failed copy leaves this machine unchanged.
+
+**Request:**
+```json
+{
+  "method": "aapanel/transfer_docker_images",
+  "params": {
+    "images": ["nginx:1.27", "redis:7"],
+    "target": "secondary",
+    "dry_run": false,
+    "compress": true,
+    "stop_containers": false,
+    "remove_containers": false,
+    "remove_local": false,
+    "timeout_seconds": 3600
+  }
+}
+```
+
+`target` names an entry in `docker_targets` in `~/.aapanel/config.json`. You can pass `host`, `user`, `port`, `ssh_key`, and `use_sudo` instead of, or as overrides on, a saved target.
+
+| Param | Default | Effect |
+| --- | --- | --- |
+| `images` | required | Image name, tag, or id. One string or a list of up to 20. |
+| `dry_run` | false | Report the plan and do not connect. |
+| `stop_containers` | false | Stop running containers that use these images. This releases their RAM. |
+| `remove_containers` | false | Remove those containers after they are stopped. Required before a local image delete if a container still references it. Does not delete volumes. |
+| `remove_local` | false | `docker rmi` on this machine after the destination has the image. This releases image-layer disk. |
+| `use_sudo` | false | Run `sudo -n docker` on the destination. |
+| `timeout_seconds` | 3600 | Limit for the stream. 30–86400. |
+
+**Response (success):**
+```json
+{
+  "success": true,
+  "transferred": true,
+  "verified": [{"name": "nginx:1.27", "id": "sha256:..."}],
+  "memory_note": "Copied the images. Containers using them are still running...",
+  "not_transferred": ["container configuration", "volumes and bind mounts", "networks", "environment variables"]
+}
+```
+
 ## PM2 Management
 
 ### get_pm2_status

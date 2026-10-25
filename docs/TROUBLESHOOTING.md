@@ -63,6 +63,20 @@
    ```
 3. Try running Docker command manually to see specific error
 
+### Image transfer fails or memory does not drop
+
+**Problem:** `transfer_docker_images` errors, or RAM stays high after a copy.
+
+**Solutions:**
+1. Confirm key login from this host. A password prompt will fail:
+   ```bash
+   ssh -o BatchMode=yes -i /root/.ssh/id_ed25519 root@OTHER_HOST docker version
+   ```
+2. Copying an image moves layers to the other machine's disk. RAM on this machine drops when containers that use those images are stopped (`stop_containers`). Disk used by the layers drops when the local image is removed (`remove_local`). A stopped container still references its image, so remove that container first (`remove_containers`) or `docker rmi` will fail.
+3. Volumes are not deleted. A large volume still uses disk after the image is gone.
+4. The other aaPanel must be able to run `docker load`. Set `use_sudo` when that user needs `sudo -n docker`.
+5. Use `dry_run` to see which containers would be affected before stopping them.
+
 ### PM2 commands fail
 
 **Problem:** PM2 methods return errors.
