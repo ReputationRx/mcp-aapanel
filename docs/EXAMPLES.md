@@ -20,6 +20,48 @@ echo '{"method": "aapanel/get_docker_status"}' | python3 aapanel-mcp-server.py
 echo '{"method": "aapanel/stop_container", "params": {"container_name": "my-container"}}' | python3 aapanel-mcp-server.py
 ```
 
+### See which images are using disk
+
+```bash
+echo '{"method": "aapanel/list_docker_images"}' | python3 aapanel-mcp-server.py
+```
+
+### Copy an image to another aaPanel
+
+Preview first. This does not open SSH and does not stop anything.
+
+```bash
+cat <<EOF | python3 aapanel-mcp-server.py
+{
+  "method": "aapanel/transfer_docker_images",
+  "params": {
+    "images": ["nginx:1.27"],
+    "host": "203.0.113.10",
+    "user": "root",
+    "ssh_key": "/root/.ssh/id_ed25519",
+    "dry_run": true
+  }
+}
+EOF
+```
+
+Copy it, then stop the container and delete the local image so this machine gets the RAM and the disk back:
+
+```bash
+cat <<EOF | python3 aapanel-mcp-server.py
+{
+  "method": "aapanel/transfer_docker_images",
+  "params": {
+    "images": ["nginx:1.27"],
+    "target": "secondary",
+    "stop_containers": true,
+    "remove_containers": true,
+    "remove_local": true
+  }
+}
+EOF
+```
+
 ## Advanced Examples
 
 ### Create Database for Application

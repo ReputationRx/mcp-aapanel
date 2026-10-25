@@ -41,6 +41,16 @@ echo '{"method": "aapanel/setup_drupal_database"}' | python3 /root/mcp-aapanel/a
 echo '{"method": "aapanel/stop_container", "params": {"container_name": "my-container"}}' | python3 /root/mcp-aapanel/aapanel-mcp-server.py
 ```
 
+### List image sizes
+```bash
+echo '{"method": "aapanel/list_docker_images"}' | python3 /root/mcp-aapanel/aapanel-mcp-server.py
+```
+
+### Copy an image to another aaPanel
+```bash
+echo '{"method": "aapanel/transfer_docker_images", "params": {"images": ["nginx:1.27"], "target": "secondary", "dry_run": true}}' | python3 /root/mcp-aapanel/aapanel-mcp-server.py
+```
+
 ## Configuration
 
 Your API key is stored at:

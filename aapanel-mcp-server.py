@@ -13,10 +13,18 @@ import base64
 import os
 import time
 
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+if _SCRIPT_DIR not in sys.path:
+    sys.path.insert(0, _SCRIPT_DIR)
+
+from docker_images import DockerImageService
+
 class AAPanelMCPServer:
     def __init__(self):
         self.api_url = None
         self.api_key = None
+        self.docker_targets = {}
+        self.image_service = DockerImageService()
         self.load_config()
     
     def load_config(self):
@@ -39,6 +47,8 @@ class AAPanelMCPServer:
                             config = json.load(f)
                             self.api_url = config.get('url', self.api_url)
                             self.api_key = config.get('api_key', self.api_key)
+                            targets = config.get('docker_targets', {})
+                            self.docker_targets = targets if isinstance(targets, dict) else {}
                         break
                 except:
                     pass
@@ -100,6 +110,10 @@ class AAPanelMCPServer:
             return self.start_container(params.get('container_name'))
         elif method == 'aapanel/restart_container':
             return self.restart_container(params.get('container_name'))
+        elif method == 'aapanel/list_docker_images':
+            return self.image_service.list_images()
+        elif method == 'aapanel/transfer_docker_images':
+            return self.image_service.transfer(params, self.docker_targets)
         
         # PM2 Methods
         elif method == 'aapanel/get_pm2_status':

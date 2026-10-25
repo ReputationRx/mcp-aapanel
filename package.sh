@@ -4,7 +4,7 @@
 set -e
 
 PACKAGE_NAME="mcp-aapanel"
-VERSION="1.0.0"
+VERSION="1.1.0"
 ARCHIVE_NAME="${PACKAGE_NAME}-v${VERSION}.tar.gz"
 
 echo "=========================================="

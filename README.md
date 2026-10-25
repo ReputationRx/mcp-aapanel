@@ -4,7 +4,7 @@ Model Context Protocol (MCP) server for managing aaPanel/BT Panel servers throug
 
 ## Features
 
-- 🐳 **Docker Management** - Start, stop, restart, and monitor containers
+- 🐳 **Docker Management** - Start, stop, restart, and monitor containers; copy images to another aaPanel
 - 📦 **PM2 Management** - Manage Node.js applications
 - 🔒 **SSL Certificate Management** - List, check status, and renew certificates
 - 💾 **Database Management** - Create databases, list databases, setup Drupal
@@ -45,7 +45,15 @@ mkdir -p ~/.aapanel
 cat > ~/.aapanel/config.json <<EOF
 {
   "url": "http://localhost:7800",
-  "api_key": "YOUR_AAPANEL_API_KEY"
+  "api_key": "YOUR_AAPANEL_API_KEY",
+  "docker_targets": {
+    "secondary": {
+      "host": "203.0.113.10",
+      "user": "root",
+      "port": 22,
+      "ssh_key": "/root/.ssh/id_ed25519"
+    }
+  }
 }
 EOF
 
@@ -119,6 +127,8 @@ echo '{"method": "aapanel/get_docker_status"}' | python3 aapanel-mcp-server.py
 ### Docker Management
 
 - `aapanel/get_docker_status` - Get Docker container status
+- `aapanel/list_docker_images` - List images by size, plus RAM and disk usage
+- `aapanel/transfer_docker_images` - Stream images to another aaPanel host over SSH
 - `aapanel/stop_container` - Stop a Docker container
 - `aapanel/start_container` - Start a Docker container
 - `aapanel/restart_container` - Restart a Docker container
@@ -191,6 +201,38 @@ This automatically:
 }
 ```
 
+### Copy images to another aaPanel
+
+Image layers use disk. Running containers use RAM. Streaming the image does not write a second copy on the source. Container config, volumes, networks, and environment variables stay on this machine. SSH to the other host must already work with a key (`BatchMode`, no password prompt).
+
+```json
+{
+  "method": "aapanel/transfer_docker_images",
+  "params": {
+    "images": ["nginx:1.27"],
+    "target": "secondary",
+    "dry_run": true
+  }
+}
+```
+
+After the other panel shows the image under Docker, free this machine:
+
+```json
+{
+  "method": "aapanel/transfer_docker_images",
+  "params": {
+    "images": ["nginx:1.27"],
+    "target": "secondary",
+    "stop_containers": true,
+    "remove_containers": true,
+    "remove_local": true
+  }
+}
+```
+
+`stop_containers` releases RAM. `remove_containers` removes the stopped containers that still reference the image. `remove_local` deletes the image layers and releases their disk. Volumes are left in place.
+
 ### Get PM2 Status
 
 ```json
@@ -261,5 +303,5 @@ Contributions welcome! Please ensure:
 
 ---
 
-**Version:** 1.0.0  
-**Last Updated:** November 2025
+**Version:** 1.1.0  
+**Last Updated:** October 2026

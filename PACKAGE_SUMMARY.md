@@ -37,6 +37,8 @@
 ### Docker Management
 - ✅ Get Docker status
 - ✅ Start/Stop/Restart containers
+- ✅ List images by size with RAM and disk usage
+- ✅ Stream images to another aaPanel host over SSH
 
 ### PM2 Management
 - ✅ Get PM2 status
